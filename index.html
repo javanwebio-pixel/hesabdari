@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>داشبورد حسابداری سپیدار</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        darkMode: 'class',
+        theme: {
+          extend: {
+            colors: {
+              primary: {
+                DEFAULT: 'hsl(262, 83%, 58%)',
+                '50': 'hsl(262, 90%, 96%)',
+                '100': 'hsl(262, 88%, 91%)',
+                '200': 'hsl(262, 86%, 83%)',
+                '300': 'hsl(262, 85%, 75%)',
+                '400': 'hsl(262, 84%, 67%)',
+                '500': 'hsl(262, 83%, 58%)',
+                '600': 'hsl(262, 75%, 52%)',
+                '700': 'hsl(262, 70%, 46%)',
+                '800': 'hsl(262, 65%, 40%)',
+                '900': 'hsl(262, 55%, 32%)',
+                '950': 'hsl(262, 50%, 20%)',
+              },
+              success: '#28c76f',
+              danger: '#ea5455',
+              warning: '#ff9f43',
+              info: '#00cfe8',
+            },
+            fontFamily: {
+              sans: ['Vazirmatn', 'sans-serif'],
+            },
+          },
+        },
+      }
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <script type="importmap">
+{
+  "imports": {
+    "react/": "https://aistudiocdn.com/react@^19.2.0/",
+    "react": "https://aistudiocdn.com/react@^19.2.0",
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
+    "recharts": "https://aistudiocdn.com/recharts@^3.2.1",
+    "uuid": "https://aistudiocdn.com/uuid@^13.0.0",
+    "react-dom": "https://aistudiocdn.com/react-dom@^19.2.0"
+  }
+}
+</script>
+<style>
+  @keyframes fade-in-right {
+    from {
+      opacity: 0;
+      transform: translateX(-20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+  .animate-fade-in-right {
+    animation: fade-in-right 0.3s ease-out forwards;
+  }
+  
+  /* Report Builder Styles */
+  .field-pill {
+    cursor: grab;
+    transition: background-color 0.2s;
+  }
+  .field-pill:active {
+    cursor: grabbing;
+  }
+  .drop-zone {
+    border: 2px dashed #e5e7eb;
+    transition: border-color 0.2s, background-color 0.2s;
+    min-height: 8rem;
+  }
+  .dark .drop-zone {
+    border-color: #4b5563;
+  }
+  .drop-zone.drag-over {
+    border-color: hsl(262, 83%, 58%);
+    background-color: hsla(262, 90%, 96%, 0.5);
+  }
+  .dark .drop-zone.drag-over {
+    background-color: hsla(262, 83%, 58%, 0.1);
+  }
+
+  /* BI Dashboard Styles */
+  .bi-grid {
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    grid-auto-rows: minmax(8rem, auto);
+    gap: 1.5rem;
+  }
+  .widget-wrapper {
+    transition: all 0.2s ease-in-out;
+    position: relative;
+  }
+  .edit-mode .widget-wrapper {
+    border: 2px dashed hsl(262, 83%, 70%);
+    animation: pulse 2s infinite;
+  }
+  .widget-remove-btn {
+    position: absolute;
+    top: -10px;
+    left: -10px;
+    background: white;
+    border-radius: 50%;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    cursor: pointer;
+    display: none;
+    z-index: 10;
+  }
+  .dark .widget-remove-btn {
+    background: #374151;
+    border: 1px solid #4b5563;
+  }
+  .edit-mode .widget-wrapper:hover .widget-remove-btn {
+    display: flex;
+  }
+   @keyframes pulse {
+    0%, 100% {
+      border-color: hsl(262, 83%, 70%);
+    }
+    50% {
+      border-color: hsl(262, 83%, 58%);
+    }
+  }
+
+  /* New Widget Card Styles - Neumorphism */
+  .widget-card {
+    background: #F9FAFB; /* Corresponds to bg-gray-50 */
+    border-radius: 1rem;
+    box-shadow: 6px 6px 12px #e6e7eb, -6px -6px 12px #ffffff;
+    transition: all 0.3s ease-in-out;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+  }
+  .dark .widget-card {
+      background: linear-gradient(145deg, #222731, #292e3a);
+      box-shadow: 8px 8px 16px #1c2027, -8px -8px 16px #303643;
+  }
+  .widget-wrapper:not(.edit-mode .widget-wrapper):hover .widget-card {
+      transform: translateY(-2px);
+      box-shadow: 10px 10px 20px #d1d2d6, -10px -10px 20px #ffffff;
+  }
+  .dark .widget-wrapper:not(.edit-mode .widget-wrapper):hover .widget-card {
+       box-shadow: 12px 12px 24px #1c2027, -12px -12px 24px #303643;
+  }
+
+  /* Edit Mode Panel - Glassmorphism */
+  .bi-widget-library {
+      background: rgba(255, 255, 255, 0.6);
+      backdrop-filter: blur(10px);
+      border-right: 1px solid rgba(255, 255, 255, 0.2);
+      transform: translateX(0);
+      transition: transform 0.3s ease-in-out, width 0.3s ease-in-out, opacity 0.3s ease-in-out;
+  }
+  .dark .bi-widget-library {
+      background: rgba(31, 41, 55, 0.6); /* dark:bg-gray-800 with opacity */
+      backdrop-filter: blur(10px);
+      border-right: 1px solid rgba(255, 255, 255, 0.1);
+  }
+  .bi-widget-library-hidden {
+      transform: translateX(-100%);
+      width: 0 !important;
+      padding: 0 !important;
+      opacity: 0;
+  }
+  
+  .widget-library-item {
+    background: rgba(255, 255, 255, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    transition: all 0.2s ease-in-out;
+  }
+  .dark .widget-library-item {
+    background: rgba(55, 65, 81, 0.5); /* gray-700 */
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+  .widget-library-item:hover {
+    background: rgba(255, 255, 255, 0.8);
+    transform: scale(1.02);
+  }
+  .dark .widget-library-item:hover {
+    background: rgba(55, 65, 81, 0.8);
+  }
+
+</style>
+</head>
+  <body class="bg-gray-50 dark:bg-gray-900">
+    <div id="root"></div>
+  </body>
+</html>
