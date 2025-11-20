@@ -1,6 +1,8 @@
 
-import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { Sidebar } from './components/layout/Sidebar';
+
+
+import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
+import { Sidebar, navGroups } from './components/layout/Sidebar';
 import { Header } from './components/layout/Header';
 import { DashboardPage } from './components/dashboard/DashboardPage';
 import { JournalEntriesListPage } from './components/financial-accounting/JournalEntriesListPage';
@@ -93,7 +95,6 @@ import { CompanyInfoPage } from './components/admin/CompanyInfoPage';
 import { BIDashboardsPage } from './components/bi/BIDashboardsPage';
 
 // Centralized Master Data Pages
-// FIX: Corrected import paths for centralized master data components.
 import { AccountsPage as MasterDataAccountsPage } from './components/master-data/AccountsPage';
 import { PartiesPage as MasterDataPartiesPage } from './components/master-data/PartiesPage';
 import { GoodsPage as MasterDataGoodsPage } from './components/master-data/GoodsPage';
@@ -756,6 +757,13 @@ export const App: React.FC = () => {
     useEffect(() => {
         document.documentElement.classList.toggle('dark', theme === 'dark');
     }, [theme]);
+
+    // Responsive Sidebar: Close on mobile initial load
+    useEffect(() => {
+        if (window.innerWidth < 768) {
+            setSidebarOpen(false);
+        }
+    }, []);
     
     // Hotkey for saving journal entry
     useEffect(() => {
@@ -949,7 +957,7 @@ export const App: React.FC = () => {
         }
     };
 
-    const onSaveMaintenanceOrder = (orderData: Omit<MaintenanceOrder, 'id' | 'orderNumber'>) => {
+    const onSaveMaintenanceOrder = (orderData: Omit<MaintenanceOrder, 'id' | 'orderNumber' | 'status' | 'creationDate'>) => {
          const maxNum = maintenanceOrders.length > 0 ? Math.max(...maintenanceOrders.map(o => o.orderNumber)) : 8000;
          const newOrder: MaintenanceOrder = { ...orderData, id: uuidv4(), orderNumber: maxNum + 1, status: 'Open', creationDate: formatDate(new Date()) };
          setMaintenanceOrders(prev => [newOrder, ...prev]);
@@ -1404,6 +1412,42 @@ export const App: React.FC = () => {
         showToast('پرداخت حذف و مبالغ به فاکتورها بازگردانده شد.', 'info');
     }, [supplierPayments, showToast]);
 
+    // --- Helper to generate breadcrumbs and page title ---
+    const getPageInfo = useCallback((slug: string) => {
+        const findPage = (items: any[]): { label: string, parents: string[] } | null => {
+            for(const item of items) {
+                if (item.path === slug) return { label: item.label, parents: [] };
+                if (item.children) {
+                    const found = findPage(item.children);
+                    if (found) return { label: found.label, parents: [item.label, ...found.parents] };
+                }
+            }
+            return null;
+        };
+
+        // Search across all groups
+        for(const group of navGroups) {
+             const found = findPage(group.items);
+             if (found) return found;
+        }
+        return { label: 'صفحه', parents: [] }; 
+    }, []);
+
+    const breadcrumbs = useMemo(() => {
+         const info = getPageInfo(activePage);
+         const crumbs: { label: string; path?: string }[] = info.parents.map(label => ({ label }));
+         crumbs.push({ label: info.label });
+         // Prepend dashboard
+         if (activePage !== 'dashboard') {
+             crumbs.unshift({ label: 'داشبورد', path: 'dashboard' });
+         }
+         return crumbs;
+    }, [activePage, getPageInfo]);
+
+    const pageTitle = useMemo(() => {
+        return getPageInfo(activePage).label;
+    }, [activePage, getPageInfo]);
+
 
     // --- RENDER LOGIC ---
     const renderPage = () => {
@@ -1415,6 +1459,7 @@ export const App: React.FC = () => {
             case 'financials-gl-recurring': return <RecurringEntriesPage recurringEntries={recurringEntries} onRunEntries={() => {}} setRecurringEntries={setRecurringEntries} accounts={accounts} showToast={showToast} />;
             case 'financials-gl-templates': return <JournalEntryTemplatesPage templates={journalEntryTemplates} addTemplate={() => {}} updateTemplate={()=>{}} deleteTemplate={()=>{}} accounts={accounts} />;
             case 'financials-gl-closing': return <YearEndClosingPage fiscalYear={fiscalYear} updateFiscalYear={(u) => setFiscalYear(f => ({...f, ...u}))} showToast={showToast} accounts={accounts} addJournalEntry={addJournalEntry} />;
+             case 'financials-convert-docs': return <ConvertDocumentsPage onNavigate={setActivePage} addJournalEntry={addJournalEntry} showToast={showToast} journalEntries={journalEntries} />;
             // AP
             case 'financials-ap-invoices': return <SupplierInvoicesListPage invoices={supplierInvoices} parties={parties} goods={goods} addInvoice={()=>{}} updateInvoice={()=>{}} deleteInvoice={()=>{}} showToast={showToast}/>;
             case 'financials-ap-payments': return <SupplierPaymentsPage payments={supplierPayments} invoices={supplierInvoices} parties={parties} addPayment={addSupplierPayment} deletePayment={deleteSupplierPayment} showToast={showToast} />;
@@ -1539,21 +1584,30 @@ export const App: React.FC = () => {
             case 'hcm-ess-portal': return <EmployeePortalPage employee={employees[0]} payslips={payslips} attendance={attendance} />;
 
 
-            default: return <div className="p-6">صفحه یافت نشد.</div>;
+            default: return <div className="p-6 text-center text-gray-500">صفحه مورد نظر یافت نشد یا در دست ساخت است.</div>;
         }
     };
     
     return (
         <div className={`font-sans ${theme}`}>
-            <div className="flex h-screen bg-gray-50 dark:bg-gray-900">
-                <Sidebar isOpen={isSidebarOpen} activePage={activePage} onNavigate={setActivePage} />
-                <div className={`flex-1 flex flex-col transition-all duration-300 ${isSidebarOpen ? 'mr-64' : 'mr-0'}`}>
+            <div className="flex h-screen bg-[#F8F7FA] dark:bg-[#0F111A] overflow-hidden">
+                <Sidebar 
+                    isOpen={isSidebarOpen} 
+                    activePage={activePage} 
+                    onNavigate={setActivePage} 
+                    onCloseMobile={() => setSidebarOpen(false)} // Close sidebar on mobile overlay click or nav
+                />
+                
+                {/* Main Content Wrapper - Adjust margin based on sidebar state */}
+                <div className={`flex-1 flex flex-col transition-all duration-300 ease-out ${isSidebarOpen ? 'md:mr-72' : 'mr-0'} relative w-full`}>
                     <Header 
                         onToggleSidebar={() => setSidebarOpen(!isSidebarOpen)} 
                         onToggleTheme={() => setTheme(theme === 'light' ? 'dark' : 'light')} 
                         currentTheme={theme}
+                        pageTitle={pageTitle}
+                        breadcrumbs={breadcrumbs}
                     />
-                    <main className="p-6 overflow-y-auto">
+                    <main className="p-6 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 h-[calc(100vh-80px)]">
                         {renderPage()}
                     </main>
                 </div>

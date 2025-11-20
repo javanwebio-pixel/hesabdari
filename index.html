@@ -13,34 +13,52 @@
           extend: {
             colors: {
               primary: {
-                DEFAULT: 'hsl(262, 83%, 58%)',
-                '50': 'hsl(262, 90%, 96%)',
-                '100': 'hsl(262, 88%, 91%)',
-                '200': 'hsl(262, 86%, 83%)',
-                '300': 'hsl(262, 85%, 75%)',
-                '400': 'hsl(262, 84%, 67%)',
-                '500': 'hsl(262, 83%, 58%)',
-                '600': 'hsl(262, 75%, 52%)',
-                '700': 'hsl(262, 70%, 46%)',
-                '800': 'hsl(262, 65%, 40%)',
-                '900': 'hsl(262, 55%, 32%)',
-                '950': 'hsl(262, 50%, 20%)',
+                DEFAULT: '#7367F0', // Modern Purple
+                '50': '#EEEDFD',
+                '100': '#E0DEFC',
+                '200': '#C3BFF9',
+                '300': '#A69FF6',
+                '400': '#8981F3',
+                '500': '#7367F0',
+                '600': '#5E54C4',
+                '700': '#4A4299',
+                '800': '#352F6D',
+                '900': '#211D42',
+                '950': '#0D0B1A',
               },
-              success: '#28c76f',
-              danger: '#ea5455',
-              warning: '#ff9f43',
-              info: '#00cfe8',
+              success: '#28C76F',
+              danger: '#EA5455',
+              warning: '#FF9F43',
+              info: '#00CFE8',
+              dark: {
+                bg: '#0F111A', // Deep dark blue/gray
+                surface: '#1E2130', // Lighter dark surface
+                border: '#2D324A'
+              }
             },
             fontFamily: {
               sans: ['Vazirmatn', 'sans-serif'],
             },
+            boxShadow: {
+              'glass': '0 8px 32px 0 rgba(31, 38, 135, 0.07)',
+              'neumorph': '20px 20px 60px #d1d9e6, -20px -20px 60px #ffffff',
+              'neumorph-dark': '5px 5px 10px #0b0d14, -5px -5px 10px #23273c',
+              'soft': '0 4px 24px 0 rgba(34, 41, 47, 0.1)',
+            },
+            backdropBlur: {
+              'xs': '2px',
+            },
+            zIndex: {
+              '60': '60',
+              '70': '70',
+            }
           },
         },
       }
     </script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@100;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
   <script type="importmap">
 {
   "imports": {
@@ -55,41 +73,86 @@
 </script>
 <style>
   @keyframes fade-in-right {
-    from {
-      opacity: 0;
-      transform: translateX(-20px);
-    }
-    to {
-      opacity: 1;
-      transform: translateX(0);
-    }
+    from { opacity: 0; transform: translateX(-10px); }
+    to { opacity: 1; transform: translateX(0); }
   }
   .animate-fade-in-right {
-    animation: fade-in-right 0.3s ease-out forwards;
+    animation: fade-in-right 0.3s cubic-bezier(0.25, 0.8, 0.25, 1) forwards;
   }
   
-  /* Report Builder Styles */
-  .field-pill {
-    cursor: grab;
-    transition: background-color 0.2s;
+  /* Performance Optimization: Use GPU for heavy elements */
+  .gpu-accelerated {
+    transform: translateZ(0);
+    backface-visibility: hidden;
+    perspective: 1000px;
   }
-  .field-pill:active {
-    cursor: grabbing;
+
+  /* Custom Scrollbar */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
   }
-  .drop-zone {
-    border: 2px dashed #e5e7eb;
-    transition: border-color 0.2s, background-color 0.2s;
-    min-height: 8rem;
+  ::-webkit-scrollbar-track {
+    background: transparent; 
   }
-  .dark .drop-zone {
-    border-color: #4b5563;
+  ::-webkit-scrollbar-thumb {
+    background: #cbd5e1; 
+    border-radius: 10px;
   }
-  .drop-zone.drag-over {
-    border-color: hsl(262, 83%, 58%);
-    background-color: hsla(262, 90%, 96%, 0.5);
+  ::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8; 
   }
-  .dark .drop-zone.drag-over {
-    background-color: hsla(262, 83%, 58%, 0.1);
+  .dark ::-webkit-scrollbar-thumb {
+    background: #374151; 
+  }
+  .dark ::-webkit-scrollbar-thumb:hover {
+    background: #4b5563; 
+  }
+
+  body {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Glassmorphism Utilities - Optimized */
+  .glass-panel {
+    background: rgba(255, 255, 255, 0.75);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.05);
+  }
+  .dark .glass-panel {
+    background: rgba(30, 33, 48, 0.75);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.2);
+  }
+  
+  .glass-input {
+    background: rgba(255, 255, 255, 0.6) !important;
+    border: 1px solid rgba(0,0,0,0.05) !important;
+    transition: all 0.2s ease;
+  }
+  .glass-input:focus {
+    background: rgba(255, 255, 255, 0.95) !important;
+    box-shadow: 0 0 0 3px rgba(115, 103, 240, 0.15);
+  }
+  .dark .glass-input {
+    background: rgba(0, 0, 0, 0.25) !important;
+    border: 1px solid rgba(255,255,255,0.05) !important;
+    color: #eee;
+  }
+  .dark .glass-input:focus {
+    background: rgba(0, 0, 0, 0.45) !important;
+  }
+
+  /* General Card & Layout */
+  .card-hover {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+  .card-hover:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.06);
   }
 
   /* BI Dashboard Styles */
@@ -100,12 +163,14 @@
     gap: 1.5rem;
   }
   .widget-wrapper {
-    transition: all 0.2s ease-in-out;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     position: relative;
+    height: 100%;
   }
   .edit-mode .widget-wrapper {
-    border: 2px dashed hsl(262, 83%, 70%);
-    animation: pulse 2s infinite;
+    border: 2px dashed #7367F0;
+    background: rgba(115, 103, 240, 0.05);
+    border-radius: 1rem;
   }
   .widget-remove-btn {
     position: absolute;
@@ -113,89 +178,56 @@
     left: -10px;
     background: white;
     border-radius: 50%;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
     cursor: pointer;
     display: none;
-    z-index: 10;
+    z-index: 20;
+    transition: transform 0.2s;
   }
-  .dark .widget-remove-btn {
-    background: #374151;
-    border: 1px solid #4b5563;
+  .widget-remove-btn:hover {
+    transform: scale(1.1);
   }
   .edit-mode .widget-wrapper:hover .widget-remove-btn {
     display: flex;
   }
-   @keyframes pulse {
-    0%, 100% {
-      border-color: hsl(262, 83%, 70%);
-    }
-    50% {
-      border-color: hsl(262, 83%, 58%);
-    }
-  }
 
-  /* New Widget Card Styles - Neumorphism */
+  /* Widget Card Styles */
   .widget-card {
-    background: #F9FAFB; /* Corresponds to bg-gray-50 */
+    background: #ffffff;
     border-radius: 1rem;
-    box-shadow: 6px 6px 12px #e6e7eb, -6px -6px 12px #ffffff;
-    transition: all 0.3s ease-in-out;
+    box-shadow: 0 4px 20px 0 rgba(34, 41, 47, 0.03);
+    transition: all 0.2s ease;
     display: flex;
     flex-direction: column;
     height: 100%;
+    border: 1px solid rgba(0,0,0,0.03);
   }
   .dark .widget-card {
-      background: linear-gradient(145deg, #222731, #292e3a);
-      box-shadow: 8px 8px 16px #1c2027, -8px -8px 16px #303643;
-  }
-  .widget-wrapper:not(.edit-mode .widget-wrapper):hover .widget-card {
-      transform: translateY(-2px);
-      box-shadow: 10px 10px 20px #d1d2d6, -10px -10px 20px #ffffff;
-  }
-  .dark .widget-wrapper:not(.edit-mode .widget-wrapper):hover .widget-card {
-       box-shadow: 12px 12px 24px #1c2027, -12px -12px 24px #303643;
+      background: #1e2130;
+      border: 1px solid #2d324a;
+      box-shadow: 0 4px 20px 0 rgba(0,0,0,0.15);
   }
 
-  /* Edit Mode Panel - Glassmorphism */
+  /* Edit Mode Panel */
   .bi-widget-library {
-      background: rgba(255, 255, 255, 0.6);
-      backdrop-filter: blur(10px);
-      border-right: 1px solid rgba(255, 255, 255, 0.2);
-      transform: translateX(0);
-      transition: transform 0.3s ease-in-out, width 0.3s ease-in-out, opacity 0.3s ease-in-out;
+      background: rgba(255, 255, 255, 0.95);
+      border-right: 1px solid rgba(0,0,0,0.05);
+      transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease;
   }
   .dark .bi-widget-library {
-      background: rgba(31, 41, 55, 0.6); /* dark:bg-gray-800 with opacity */
-      backdrop-filter: blur(10px);
-      border-right: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(30, 33, 48, 0.98);
+      border-right: 1px solid rgba(255, 255, 255, 0.05);
   }
   .bi-widget-library-hidden {
       transform: translateX(-100%);
       width: 0 !important;
       padding: 0 !important;
       opacity: 0;
+      pointer-events: none;
   }
-  
-  .widget-library-item {
-    background: rgba(255, 255, 255, 0.5);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    transition: all 0.2s ease-in-out;
-  }
-  .dark .widget-library-item {
-    background: rgba(55, 65, 81, 0.5); /* gray-700 */
-    border: 1px solid rgba(255, 255, 255, 0.1);
-  }
-  .widget-library-item:hover {
-    background: rgba(255, 255, 255, 0.8);
-    transform: scale(1.02);
-  }
-  .dark .widget-library-item:hover {
-    background: rgba(55, 65, 81, 0.8);
-  }
-
 </style>
 </head>
-  <body class="bg-gray-50 dark:bg-gray-900">
+  <body class="bg-[#F8F7FA] dark:bg-[#0F111A] text-[#5E5873] dark:text-[#B6BEE3] overflow-x-hidden antialiased">
     <div id="root"></div>
   </body>
 </html>

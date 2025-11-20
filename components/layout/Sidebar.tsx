@@ -1,19 +1,20 @@
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, memo } from 'react';
 import type { NavItemType } from '../../types';
 import { 
     IconDashboard, IconWallet, IconChartPie, IconShoppingCart, IconBuildingStore,
     IconSettings, IconChevronLeft, IconBrand, IconComponents, IconRoles, IconTable,
-    IconUser, IconBook, IconFileText, IconChart, IconBuildingBank, IconGlobe, IconBriefcase
+    IconUser, IconBook, IconFileText, IconChart, IconBuildingBank
 } from '../Icons';
 
 
-interface NavGroup {
+export interface NavGroup {
     title: string;
     items: NavItemType[];
 }
 
-const navGroups: NavGroup[] = [
+// Exported for use in App.tsx for breadcrumbs
+export const navGroups: NavGroup[] = [
     {
         title: '',
         items: [
@@ -36,6 +37,7 @@ const navGroups: NavGroup[] = [
                             { label: 'اسناد دوره‌ای', path: 'financials-gl-recurring' },
                             { label: 'الگوهای سند', path: 'financials-gl-templates' },
                             { label: 'عملیات پایان سال', path: 'financials-gl-closing' },
+                            { label: 'تبدیل اسناد', path: 'financials-convert-docs' },
                         ]
                     },
                     {
@@ -98,6 +100,7 @@ const navGroups: NavGroup[] = [
                     { label: 'دریافت جدید', path: 'treasury-receive' },
                     { label: 'پرداخت جدید', path: 'treasury-payment' },
                     { label: 'مدیریت چک‌ها', path: 'treasury-cash-checks' },
+                    { label: 'چک جدید', path: 'treasury-new-check' },
                     { label: 'مغایرت‌گیری بانکی', path: 'treasury-bank-reconciliation' },
                     { label: 'پیش‌بینی جریان نقد', path: 'treasury-liquidity-forecast' },
                 ]
@@ -179,7 +182,7 @@ const navGroups: NavGroup[] = [
                 path: 'procurement', 
                 children: [
                     {
-                        label: 'خرید داخلی',
+                        label: 'خرید و تدارکات',
                         children: [
                             { label: 'درخواست خرید (PR)', path: 'procurement-req' },
                             { label: 'استعلام (RFQ)', path: 'procurement-rfq' },
@@ -187,16 +190,6 @@ const navGroups: NavGroup[] = [
                             { label: 'رسید کالا (GR)', path: 'procurement-receipt' },
                             { label: 'کنترل فاکتور خرید', path: 'procurement-invoice-verify' },
                             { label: 'قراردادهای خرید', path: 'procurement-contracts' },
-                        ]
-                    },
-                    {
-                        label: 'تدارکات خارجی (واردات)',
-                        children: [
-                            { label: 'پرونده سفارش خارجی', path: 'procurement-foreign-order' },
-                            { label: 'پروفرما اینویس', path: 'procurement-proforma' },
-                            { label: 'بیمه و حمل', path: 'procurement-shipping' },
-                            { label: 'امور گمرکی و ترخیص', path: 'procurement-customs' },
-                            { label: 'تسهیم هزینه (Landed Cost)', path: 'procurement-landed-cost' },
                         ]
                     },
                     {
@@ -244,8 +237,8 @@ const navGroups: NavGroup[] = [
                 ]
             },
             { 
-                label: 'پروژه و پیمانکاری (PS)', 
-                icon: <IconBriefcase />,
+                label: 'مدیریت پروژه (PS)', 
+                icon: <IconFileText />,
                 path: 'projects', 
                 children: [
                     {
@@ -253,15 +246,6 @@ const navGroups: NavGroup[] = [
                         children: [
                              { label: 'ساختار شکست (WBS)', path: 'ps-def-wbs' },
                              { label: 'شبکه فعالیت‌ها', path: 'ps-def-networks' },
-                        ]
-                    },
-                    {
-                        label: 'مدیریت پیمان',
-                        children: [
-                             { label: 'قرارداد پیمانکاری', path: 'ps-contract-master' },
-                             { label: 'صورت وضعیت پیمانکار', path: 'ps-contract-statement' },
-                             { label: 'مدیریت ضمانت‌نامه‌ها', path: 'ps-contract-guarantees' },
-                             { label: 'کسورات و بیمه', path: 'ps-contract-deductions' },
                         ]
                     },
                     {
@@ -273,11 +257,11 @@ const navGroups: NavGroup[] = [
                         ]
                     },
                     {
-                        label: 'اجرا و کنترل',
+                        label: 'اجرای و کنترل',
                         children: [
                             { label: 'کارکرد (Timesheet)', path: 'ps-exec-timesheet' },
                             { label: 'تدارکات پروژه', path: 'ps-exec-procurement' },
-                            { label: 'صورت وضعیت کارفرما', path: 'ps-exec-billing' },
+                            { label: 'صورت وضعیت', path: 'ps-exec-billing' },
                         ]
                     },
                     { label: 'داشبورد پروژه', path: 'ps-control-reports' }
@@ -298,13 +282,11 @@ const navGroups: NavGroup[] = [
                         children: [
                             { label: 'پرونده پرسنلی', path: 'hcm-admin-master' },
                             { label: 'چارت سازمانی', path: 'hcm-admin-org' },
-                            { label: 'احکام پرسنلی', path: 'hcm-admin-contracts' },
                         ]
                     },
                     {
                         label: 'حقوق و دستمزد',
                         children: [
-                            { label: 'عوامل حقوقی', path: 'hcm-payroll-elements' },
                             { label: 'محاسبه حقوق', path: 'hcm-payroll-calc' },
                             { label: 'فیش و دیسکت', path: 'hcm-payroll-reports' },
                         ]
@@ -394,12 +376,13 @@ const isChildOfActive = (item: NavItemType, activePage: string): boolean => {
     return item.children.some(c => c.path === activePage || isChildOfActive(c, activePage));
 };
 
+// Memoized MenuItem to prevent unnecessary re-renders and improve performance
 const MenuItem: React.FC<{
     item: NavItemType;
     level: number;
     activePage: string;
     onNavigate: (page: string) => void;
-}> = ({ item, level, activePage, onNavigate }) => {
+}> = memo(({ item, level, activePage, onNavigate }) => {
     const isChildActive = useMemo(() => isChildOfActive(item, activePage), [item, activePage]);
     const [isExpanded, setIsExpanded] = useState(isChildActive);
     
@@ -407,7 +390,7 @@ const MenuItem: React.FC<{
         if (isChildActive) {
             setIsExpanded(true);
         }
-    }, [isChildActive, activePage]);
+    }, [isChildActive]);
 
     const hasChildren = item.children && item.children.length > 0;
     const isActive = activePage === item.path;
@@ -426,72 +409,102 @@ const MenuItem: React.FC<{
     const indentStyle = { paddingRight: `${0.5 + level * 1.5}rem` };
 
     return (
-        <li className="my-1 transition-all duration-300">
+        <li className="my-1">
             <a
                 href="#"
                 onClick={handleClick}
                 style={indentStyle}
-                className={`flex items-center p-2 text-sm rounded-md transition-colors duration-200 ${
-                    isParentActive ? 'bg-primary text-white shadow-lg' :
-                    isActive ? 'text-primary dark:text-primary-300 font-semibold' :
-                    'text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
+                className={`flex items-center p-2.5 text-sm rounded-xl transition-colors duration-200 group relative overflow-hidden ${
+                    isParentActive ? 'bg-primary text-white shadow-lg shadow-primary/40' :
+                    isActive ? 'text-primary dark:text-primary-300 font-semibold bg-primary-50 dark:bg-primary-900/20' :
+                    'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white'
                 }`}
             >
-                {level === 0 && item.icon}
-                {level > 0 && <span className={`w-1.5 h-1.5 rounded-full ml-4 transition-colors ${isActive || isParentActive ? 'bg-white' : 'bg-gray-400'}`}></span>}
-                <span className={`${level > 0 ? '' : 'mr-3'} flex-1`}>{item.label}</span>
-                {hasChildren && <IconChevronLeft className={`w-4 h-4 transition-transform ${isExpanded ? '-rotate-90' : ''}`} />}
+                <span className="z-10 flex items-center w-full">
+                    {level === 0 && <span className={`mr-1 opacity-80 group-hover:opacity-100 transition-opacity ${isParentActive ? 'text-white' : ''}`}>{item.icon}</span>}
+                    {level > 0 && <span className={`w-1.5 h-1.5 rounded-full ml-4 transition-colors ${isActive || isParentActive ? 'bg-white shadow-[0_0_8px_rgba(255,255,255,0.8)]' : 'bg-gray-400 group-hover:bg-gray-600'}`}></span>}
+                    <span className={`${level > 0 ? '' : 'mr-3'} flex-1 truncate`}>{item.label}</span>
+                    {hasChildren && <IconChevronLeft className={`w-4 h-4 transition-transform duration-200 ${isExpanded ? '-rotate-90' : ''} opacity-70`} />}
+                </span>
             </a>
-            {hasChildren && isExpanded && (
-                <ul className="mt-1 space-y-1">
-                    {item.children?.map((child) => (
-                        <MenuItem 
-                            key={child.path || child.label} 
-                            item={child} 
-                            level={level + 1} 
-                            activePage={activePage} 
-                            onNavigate={onNavigate} 
-                        />
-                    ))}
-                </ul>
+            {hasChildren && (
+                <div className={`grid transition-all duration-300 ease-in-out ${isExpanded ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}>
+                    <ul className="overflow-hidden">
+                        {item.children?.map((child) => (
+                            <MenuItem 
+                                key={child.path || child.label} 
+                                item={child} 
+                                level={level + 1} 
+                                activePage={activePage} 
+                                onNavigate={onNavigate} 
+                            />
+                        ))}
+                    </ul>
+                </div>
             )}
         </li>
     );
-};
+});
 
 interface SidebarProps {
     isOpen: boolean;
     activePage: string;
-    onNavigate: (page: any) => void;
+    onNavigate: (page: string) => void;
+    onCloseMobile: () => void; // New prop to close sidebar on mobile
 }
 
-export const Sidebar: React.FC<SidebarProps> = ({ isOpen, activePage, onNavigate }) => {
+export const Sidebar: React.FC<SidebarProps> = ({ isOpen, activePage, onNavigate, onCloseMobile }) => {
+    
+    // Close sidebar when navigating on mobile
+    const handleNavigate = (page: string) => {
+        onNavigate(page);
+        if (window.innerWidth < 768) {
+            onCloseMobile();
+        }
+    }
+
     return (
-        <aside className={`fixed top-0 right-0 h-full bg-white dark:bg-gray-800 shadow-lg z-30 transition-transform duration-300 ${isOpen ? 'translate-x-0' : 'translate-x-full'} w-64`}>
-            <div className="flex items-center justify-center p-4 border-b dark:border-gray-700">
-                 <IconBrand />
-                <h1 className="text-xl font-bold mr-2 text-gray-800 dark:text-white">سپیدار ERP</h1>
-            </div>
-            <nav className="p-2 h-[calc(100vh-65px)] overflow-y-auto">
-                {navGroups.map((group, index) => (
-                    <div key={group.title || index} className="mb-2">
-                        {group.title && (
-                            <h3 className="px-3 py-2 text-xs font-bold text-gray-400 uppercase tracking-wider">{group.title}</h3>
-                        )}
-                        <ul>
-                            {group.items.map((item) => (
-                                <MenuItem 
-                                    key={item.path || item.label}
-                                    item={item}
-                                    level={0}
-                                    activePage={activePage}
-                                    onNavigate={onNavigate}
-                                />
-                            ))}
-                        </ul>
+        <>
+            {/* Mobile Overlay */}
+            <div 
+                className={`fixed inset-0 bg-black/50 z-60 transition-opacity duration-300 md:hidden ${isOpen ? 'opacity-100 visible' : 'opacity-0 invisible'}`} 
+                onClick={onCloseMobile}
+            />
+
+            {/* Sidebar Container - Using Transform for Performance */}
+            <aside 
+                className={`fixed top-0 right-0 h-full w-72 bg-white dark:bg-[#151923] border-l border-gray-200 dark:border-[#2d324a] z-70 shadow-2xl transition-transform duration-300 ease-out gpu-accelerated ${isOpen ? 'translate-x-0' : 'translate-x-full'}`}
+            >
+                <div className="flex items-center justify-center h-20 border-b dark:border-[#2d324a] bg-white/50 dark:bg-[#151923]/50 backdrop-blur-sm">
+                     <div className="flex items-center gap-3 cursor-pointer" onClick={() => handleNavigate('dashboard')}>
+                        <IconBrand />
+                        <div className="flex flex-col">
+                            <h1 className="text-xl font-bold text-gray-800 dark:text-white tracking-tight leading-none">سپیدار <span className="text-primary">ERP</span></h1>
+                            <span className="text-[10px] text-gray-500 dark:text-gray-400 mt-1 tracking-wider uppercase font-bold">Enterprise Edition</span>
+                        </div>
                     </div>
-                ))}
-            </nav>
-        </aside>
+                </div>
+                <nav className="p-4 h-[calc(100vh-80px)] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600">
+                    {navGroups.map((group, index) => (
+                        <div key={group.title || index} className="mb-6">
+                            {group.title && (
+                                <h3 className="px-4 mb-2 text-[11px] font-extrabold text-gray-400 dark:text-gray-500 uppercase tracking-wider opacity-80">{group.title}</h3>
+                            )}
+                            <ul>
+                                {group.items.map((item) => (
+                                    <MenuItem 
+                                        key={item.path || item.label}
+                                        item={item}
+                                        level={0}
+                                        activePage={activePage}
+                                        onNavigate={handleNavigate}
+                                    />
+                                ))}
+                            </ul>
+                        </div>
+                    ))}
+                </nav>
+            </aside>
+        </>
     );
 };
